@@ -439,6 +439,21 @@ class ATEMKeyFrames(ATEMConstantList):
     full = ATEMConstant('full', 3)
     runToInfinite = ATEMConstant('runToInfinite', 4)
 
+class ATEMInfiniteDirections(ATEMConstantList):
+    """Infinite Direction list for Run to Infinite operations"""
+    
+    # Based on your working frontend direction mapping
+    center = ATEMConstant('center', 0)            # Center buttons (expand/contract)
+    northWest = ATEMConstant('northWest', 1)      # ↖ (top-left)
+    north = ATEMConstant('north', 2)              # ↑ (top)  
+    northEast = ATEMConstant('northEast', 3)      # ↗ (top-right)
+    west = ATEMConstant('west', 4)                # ← (left)
+    # direction 5 appears unused in your grid
+    east = ATEMConstant('east', 6)                # → (right)
+    southWest = ATEMConstant('southWest', 7)      # ↙ (bottom-left)
+    south = ATEMConstant('south', 8)              # ↓ (bottom)
+    southEast = ATEMConstant('southEast', 9) 
+
 
 # #######################################################################
 #

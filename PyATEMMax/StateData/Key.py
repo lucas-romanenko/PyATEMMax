@@ -108,6 +108,40 @@ class Key():
             self.lift: float = 0.0
             self.narrow: bool = False
             self.ySuppress: float = 0.0
+            self.sample: bool = False
+            self.preview: bool = False  # Add this line
+            self.samplePosition: Key.Chroma.Position = Key.Chroma.Position()
+            self.sampleSize: float = 0.0
+            self.sampledColor: dict = {
+                'y_raw': 0,      # Raw Y value (0-10000)
+                'cb_raw': 5000,  # Raw Cb value (centered at 5000)
+                'cr_raw': 5000,  # Raw Cr value (centered at 5000)
+                'y': 0.0,        # Normalized Y (0.0-1.0)
+                'cb': 0.0,       # Normalized Cb (-1.0 to 1.0)
+                'cr': 0.0        # Normalized Cr (-1.0 to 1.0)
+            }
+
+            self.foreground: float = 0.0
+            self.background: float = 0.0  
+            self.keyEdge: float = 0.5  # Default 50%
+            
+            # Chroma Correction fields
+            self.spill: float = 0.0
+            self.flareSuppression: float = 0.0
+
+            # Add Color Adjustment fields if needed
+            self.brightness: float = 1.0
+            self.contrast: float = 0.5
+            self.saturation: float = 1.0
+            self.red: float = 0.5
+            self.green: float = 0.5
+            self.blue: float = 0.5
+
+
+        class Position():
+            def __init__(self): # Key.Chroma.Position
+                self.x: float = 0.5  # Default to center
+                self.y: float = 0.5  # Default to center
 
 
     def __init__(self): # Key

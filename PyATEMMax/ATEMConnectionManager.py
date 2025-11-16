@@ -83,7 +83,7 @@ class ATEMConnectionManager():
 
         self._cmdHandlers[command] = { "callback": callback }
 
-
+        
     def __del__(self) -> None:
         """Things to do when killed :)"""
 
@@ -693,7 +693,7 @@ class ATEMConnectionManager():
 
     def _sendCommand(self, bufferlength: int) -> None:
         """Skårhøj: void _sendPacketBuffer(uint8_t length)"""
-
+        
         payload = bytes(self._outBuf[:bufferlength])
         self._udp.write(payload)
 
@@ -776,7 +776,7 @@ class ATEMConnectionManager():
 
     def _prepareCommandPacket(self, cmdString: str, cmdBytes: int, indexMatch: Optional[bool]=True) -> None:
         """Skårhøj: void _prepareCommandPacket(const char *cmdString, uint8_t cmdBytes, bool indexMatch=true)"""
-
+        
         cmdStrPos = self.atem.headerLen + self._cBBO + self.atem.cmdStrOffset
 
         # First, in case of a command bundle, check if indexes are different OR if it's an entirely different command, then increase offset to accommodate new command:
@@ -808,9 +808,35 @@ class ATEMConnectionManager():
         self._outBuf.setUserOffsetCallback(lambda offset : self.atem.headerLen + self._cBBO + self.atem.cmdHeaderLen + offset)
 
 
+    # Add this method to ATEMConnectionManager class:
+
+    def _prepareCACKCommandPacket(self, cmdBytes: int):
+        """Special preparation for CACK commands with synchronized sequence numbers"""
+        
+        # CACK needs special handling - use next sequence after ATEM's last
+        self._outBuf.reset()
+        
+        # Calculate the two sequence numbers we need
+        seq1 = self.lastRemotePacketID + 1
+        seq2 = self.lastRemotePacketID + 2
+        
+        # Store these for the two-packet sequence
+        self._cackSeq1 = seq1
+        self._cackSeq2 = seq2
+        
+        # Prepare first packet with seq1
+        self._prepareCommandPacket("CACK", cmdBytes, False)
+        
+        # Override the sequence number that was set by _prepareCommandPacket
+        # It's at position 10-11 in the header
+        self._outBuf.setU16(10, self._cackSeq1)
+        
+        return self._cackSeq1
+
+
     def _finishCommandPacket(self) -> None:
         """Skårhøj: void _finishCommandPacket()"""
-
+        
         # Reset control to user: set offset handler for output buffer
         self._outBuf.setUserOffsetCallback(lambda offset : offset)
 

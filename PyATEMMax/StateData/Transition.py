@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # coding: utf-8
 """
-PyATEMMax state data: Transition
+PyATEMMax state data: Transition - Enhanced with Stinger totalRate
 Part of the PyATEMMax library.
 """
 
@@ -54,6 +54,44 @@ class Transition():
             self.preRoll: int = 0
             self.source: ATEMConstant = ATEMConstant()
             self.triggerPoint: int = 0
+
+        @property
+        def totalRate(self) -> int:
+            """
+            Get the total sting rate (mix rate + clip duration)
+            This matches what ATEM software control displays in the rate field
+            
+            Returns:
+                int: Total transition time in frames (mixRate + clipDuration)
+            """
+            return self.preRoll + self.clipDuration
+
+        @property
+        def stingRate(self) -> int:
+            """
+            Alias for totalRate - total sting duration including mix and clip
+            This matches ATEM software behavior where the rate field shows total time
+            
+            Returns:
+                int: Total transition time in frames (mixRate + clipDuration)
+            """
+            return self.totalRate
+
+        @property
+        def totalRateSeconds(self) -> float:
+            """
+            Get the total sting rate in seconds (assuming 25fps)
+            
+            Returns:
+                float: Total transition time in seconds
+            """
+            return self.totalRate / 25.0
+
+        def __str__(self) -> str:
+            """String representation showing all sting parameters"""
+            return (f"Stinger(mixRate={self.mixRate}, clipDuration={self.clipDuration}, "
+                   f"totalRate={self.totalRate}, source={self.source}, "
+                   f"triggerPoint={self.triggerPoint})")
 
 
     class Wipe():

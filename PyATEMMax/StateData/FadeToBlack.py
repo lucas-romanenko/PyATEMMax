@@ -1,18 +1,8 @@
-#!/usr/bin/env python3
-# coding: utf-8
-"""
-PyATEMMax state data: FadeToBlack
-Part of the PyATEMMax library.
-"""
-
-# pylint: disable=missing-class-docstring
-
 from PyATEMMax.ATEMProtocol import ATEMProtocol
 from PyATEMMax.ATEMValueDict import ATEMValueDict
 
 
 class FadeToBlack():
-
     class State():
         def __init__(self):
             self.framesRemaining: int = 0
@@ -22,6 +12,7 @@ class FadeToBlack():
     def __init__(self):
         self.rate: int = 0
         self.state: FadeToBlack.State = FadeToBlack.State()
+        self.disabled: bool = False 
 
 
 class FadeToBlackList(ATEMValueDict[FadeToBlack]):

@@ -82,14 +82,14 @@ class ATEMCommandHandlers():
                 self._sw._registerCmdHandler(funccmd, self._mainHandler)
 
 
-    def _mainHandler(self, cmdStr:str) -> None:
+    def _mainHandler(self, cmdStr: str) -> None:
         '''This is the main handler, it redirects calls'''
-
+        
         if cmdStr not in self._AUTOMANAGED_HANDLERS:
             self._sw._read2InBuf()
 
         self.cmdStr = cmdStr
-        self._getHandler(cmdStr)()  # Call specific handler
+        self._getHandler(cmdStr)()
 
 
     def _getHandler(self, cmdStr:str) -> Callable[[], None]:
@@ -395,10 +395,10 @@ class ATEMCommandHandlers():
         self._d.keyer[mE][keyer].bottom = self._inBuf.getFloat(14, True, 16, 1000)
 
         value = self._inBuf.getS16(16)
-        self._d.keyer[mE][keyer].left = mapValue(value, -16000, 16000, -9.0, 9.0)
+        self._d.keyer[mE][keyer].left = mapValue(value, -16000, 16000, -16.0, 16.0)
 
         value = self._inBuf.getS16(18)
-        self._d.keyer[mE][keyer].right = mapValue(value, -16000, 16000, -9.0, 9.0)
+        self._d.keyer[mE][keyer].right = mapValue(value, -16000, 16000, -16.0, 16.0)
 
 
     def _handleKeLm(self) -> None:
@@ -456,17 +456,11 @@ class ATEMCommandHandlers():
         self._d.key[mE][keyer].dVE.lightSource.direction = self._inBuf.getFloat(44, False, 16, 10)
         self._d.key[mE][keyer].dVE.lightSource.altitude = self._inBuf.getU8(46)
         self._d.key[mE][keyer].dVE.masked = self._inBuf.getU8Flag(47, 0)
-        self._d.key[mE][keyer].dVE.top = self._inBuf.getFloat(48, True, 16, 1000)
-        self._d.key[mE][keyer].dVE.bottom = self._inBuf.getFloat(50, True, 16, 1000)
-
-        value = self._inBuf.getS16(52)
-        self._d.key[mE][keyer].dVE.left = mapValue(value, -16000, 16000, -9.0, 9.0)
-
-        value = self._inBuf.getS16(54)
-        self._d.key[mE][keyer].dVE.right = mapValue(value, -16000, 16000, -9.0, 9.0)
-
+        self._d.key[mE][keyer].dVE.top = self._inBuf.getFloat(48, False, 16, 1000)      
+        self._d.key[mE][keyer].dVE.bottom = self._inBuf.getFloat(50, False, 16, 1000)
+        self._d.key[mE][keyer].dVE.left = self._inBuf.getFloat(52, False, 16, 1000)
+        self._d.key[mE][keyer].dVE.right = self._inBuf.getFloat(54, False, 16, 1000)      
         self._d.key[mE][keyer].dVE.rate = self._inBuf.getU8(56)
-
 
     def _handleKeFS(self) -> None:
         mE = self._getBufMixEffect(0)
@@ -477,7 +471,7 @@ class ATEMCommandHandlers():
         self._d.keyer[mE][keyer].fly.isAtKeyFrame.b = self._inBuf.getU8Flag(6, 1)
         self._d.keyer[mE][keyer].fly.isAtKeyFrame.full = self._inBuf.getU8Flag(6, 2)
         self._d.keyer[mE][keyer].fly.isAtKeyFrame.runToInfinite = self._inBuf.getU8Flag(6, 3)
-        self._d.keyer[mE][keyer].fly.runtoInfiniteindex = self._inBuf.getU8(7)
+        self._d.keyer[mE][keyer].fly.runtoInfiniteindex = self._inBuf.getU8(5)  # Changed from 7 to 5
 
 
     def _handleKKFP(self) -> None:
@@ -530,11 +524,11 @@ class ATEMCommandHandlers():
         self._d.downstreamKeyer[dsk].top = self._inBuf.getFloat(10, True, 16, 1000)
         self._d.downstreamKeyer[dsk].bottom = self._inBuf.getFloat(12, True, 16, 1000)
 
-        value = self._inBuf.getS16(4)
-        self._d.downstreamKeyer[dsk].left = mapValue(value, -16000, 16000, -9.0, 9.0)
+        value = self._inBuf.getS16(14)
+        self._d.downstreamKeyer[dsk].left = mapValue(value, -16000, 16000, -16.0, 16.0)
 
         value = self._inBuf.getS16(16)
-        self._d.downstreamKeyer[dsk].right = mapValue(value, -16000, 16000, -9.0, 9.0)
+        self._d.downstreamKeyer[dsk].right = mapValue(value, -16000, 16000, -16.0, 16.0)
 
 
     def _handleDskS(self) -> None:
@@ -542,8 +536,7 @@ class ATEMCommandHandlers():
         self._d.downstreamKeyer[dsk].onAir = self._inBuf.getU8Flag(1, 0)
         self._d.downstreamKeyer[dsk].inTransition = self._inBuf.getU8Flag(2, 0)
         self._d.downstreamKeyer[dsk].isAutoTransitioning = self._inBuf.getU8Flag(3, 0)
-        self._d.downstreamKeyer[dsk].framesRemaining = self._inBuf.getU8(4)
-
+        self._d.downstreamKeyer[dsk].framesRemaining = self._inBuf.getU8(5)
 
     def _handleFtbP(self) -> None:
         mE = self._getBufMixEffect(0)
@@ -555,6 +548,39 @@ class ATEMCommandHandlers():
         self._d.fadeToBlack[mE].state.fullyBlack = self._inBuf.getU8Flag(1, 0)
         self._d.fadeToBlack[mE].state.inTransition = self._inBuf.getU8Flag(2, 0)
         self._d.fadeToBlack[mE].state.framesRemaining = self._inBuf.getU8(3)
+
+
+    def _handleTEST(self) -> None:
+        """Test method to see if new methods work"""
+        pass
+
+
+    def _handleFEna(self) -> None:
+        """Handle FEna (Fade Enable/Disable) state updates"""
+        try:
+            mE = self._getBufMixEffect(0)
+            
+            # Get packet bytes
+            byte0 = self._inBuf.getU8(0)
+            byte1 = self._inBuf.getU8(1)
+            
+            # Try to get byte2 safely
+            try:
+                byte2 = self._inBuf.getU8(2)
+            except:
+                byte2 = 0
+            
+            # Parse based on your Wireshark analysis
+            if byte0 == 0 and byte1 == 1:
+                # Enable packet (00 01)
+                self._d.fadeToBlack[mE].disabled = False
+            else:
+                # Disable packet or other pattern
+                self._d.fadeToBlack[mE].disabled = True
+                
+        except Exception as e:
+            # Don't crash on parsing errors
+            pass
 
 
     def _handleColV(self) -> None:
@@ -909,3 +935,155 @@ class ATEMCommandHandlers():
 
     def _handleNOTIMPLEMENTED(self) -> None:
         pass
+
+    def _handleKACC(self) -> None:
+        """Handle Key Chroma Sample status response"""
+        
+        # Read the data
+        mE_val = self._inBuf.getU8(0)
+        keyer_val = self._inBuf.getU8(1)
+        sample_flag = self._inBuf.getU8(2) != 0
+        
+        # Check byte 3 for preview mode indicator
+        preview_flag = self._inBuf.getU8(3) == 0x01
+        
+        # Read position data as SIGNED 16-bit integers
+        x_unsigned = self._inBuf.getU16(4)
+        y_unsigned = self._inBuf.getU16(6)
+        size_raw = self._inBuf.getU16(8)
+        
+        # Convert unsigned to signed
+        x_raw = x_unsigned if x_unsigned < 0x8000 else x_unsigned - 0x10000
+        y_raw = y_unsigned if y_unsigned < 0x8000 else y_unsigned - 0x10000
+        
+        # Get the enum objects
+        mE = self._p.mixEffects[mE_val] if mE_val < len(self._p.mixEffects) else self._p.mixEffects[0]
+        keyer = self._p.keyers[keyer_val] if keyer_val < len(self._p.keyers) else self._p.keyers[0]
+        
+        # Use the correct ranges from OpenSwitcher documentation
+        # X normalization: -16000 to +16000 (symmetric)
+        x_min = -16000
+        x_max = 16000
+        x_pos = (x_raw - x_min) / (x_max - x_min)
+        
+        # Y normalization: -9000 to +9000 (symmetric)
+        # -9000 = bottom (0.0), +9000 = top (1.0)
+        y_min = -9000
+        y_max = 9000
+        y_pos = (y_raw - y_min) / (y_max - y_min)
+        
+        # Size normalization: 620 to 9925
+        size_min = 620
+        size_max = 9925
+        if size_raw <= size_min:
+            size_pos = 0.0
+        elif size_raw >= size_max:
+            size_pos = 1.0
+        else:
+            size_pos = (size_raw - size_min) / (size_max - size_min)
+        
+        # Clamp all values to 0.0-1.0
+        x_pos = max(0.0, min(1.0, x_pos))
+        y_pos = max(0.0, min(1.0, y_pos))
+        size_pos = max(0.0, min(1.0, size_pos))
+        
+        # Update state
+        self._d.key[mE][keyer].chroma.sample = sample_flag
+        self._d.key[mE][keyer].chroma.preview = preview_flag
+        self._d.key[mE][keyer].chroma.samplePosition.x = x_pos
+        self._d.key[mE][keyer].chroma.samplePosition.y = y_pos
+        self._d.key[mE][keyer].chroma.sampleSize = size_pos
+
+        if len(self._inBuf) >= 16:
+            # Read 16-bit YCbCr values
+            y_raw = self._inBuf.getU16(10)
+            cb_raw = self._inBuf.getU16(12)
+            cr_raw = self._inBuf.getU16(14)
+            
+            # From OpenSwitcher: Y = (field[7] - 625) / 8544
+            # This means Y range is 625 to 9169 (625 + 8544)
+            # Cb/Cr use 5000 as center with ±5000 range
+            Y_MIN = 625
+            Y_MAX = 9169
+            CHROMA_CENTER = 5000
+            CHROMA_RANGE = 5000
+            
+            # Normalize values using OpenSwitcher's formulas
+            y_norm = (y_raw - Y_MIN) / (Y_MAX - Y_MIN)  # 0.0 to 1.0
+            cb_norm = (cb_raw - CHROMA_CENTER) / CHROMA_RANGE  # -1.0 to 1.0
+            cr_norm = (cr_raw - CHROMA_CENTER) / CHROMA_RANGE  # -1.0 to 1.0
+            
+            # Clamp color values
+            y_norm = max(0.0, min(1.0, y_norm))
+            cb_norm = max(-1.0, min(1.0, cb_norm))
+            cr_norm = max(-1.0, min(1.0, cr_norm))
+            
+            # Store the sampled color
+            self._d.key[mE][keyer].chroma.sampledColor = {
+                'y_raw': y_raw,
+                'cb_raw': cb_raw,
+                'cr_raw': cr_raw,
+                'y': y_norm,
+                'cb': cb_norm,
+                'cr': cr_norm
+            }
+
+    def _handleKACk(self) -> None:
+        """Handle Key Adjustment Acknowledgment response"""
+        
+        try:
+            mE_val = self._inBuf.getU8(0)
+            keyer_val = self._inBuf.getU8(1)
+            
+            if mE_val < len(self._p.mixEffects) and keyer_val < len(self._p.keyers):
+                mE = self._p.mixEffects[mE_val]
+                keyer = self._p.keyers[keyer_val]
+                
+                if len(self._inBuf) >= 24:
+                    
+                    # Key Adjustments (0-100%)
+                    foreground_raw = self._inBuf.getU16(2)
+                    self._d.key[mE][keyer].chroma.foreground = foreground_raw / 1000.0
+                    
+                    background_raw = self._inBuf.getU16(4)
+                    self._d.key[mE][keyer].chroma.background = background_raw / 1000.0
+                    
+                    keyEdge_raw = self._inBuf.getU16(6)
+                    self._d.key[mE][keyer].chroma.keyEdge = keyEdge_raw / 1000.0
+                    
+                    # Chroma Correction (0-100%)
+                    spill_raw = self._inBuf.getU16(8)
+                    self._d.key[mE][keyer].chroma.spill = spill_raw / 1000.0
+                    
+                    flareSuppression_raw = self._inBuf.getU16(10)
+                    self._d.key[mE][keyer].chroma.flareSuppression = flareSuppression_raw / 1000.0
+                    
+                    # Color Adjustments
+                    # ALL of these can be negative, so read as signed
+                    
+                    # Brightness: -100% to 100%
+                    brightness_raw = self._inBuf.getS16(12)
+                    self._d.key[mE][keyer].chroma.brightness = brightness_raw / 1000.0
+                    
+                    # Contrast: -100% to 100% (also signed!)
+                    contrast_raw = self._inBuf.getS16(14)
+                    self._d.key[mE][keyer].chroma.contrast = contrast_raw / 1000.0
+                    
+                    # Saturation: -100% to 200% (also signed!)
+                    saturation_raw = self._inBuf.getS16(16)
+                    self._d.key[mE][keyer].chroma.saturation = saturation_raw / 1000.0
+                    
+                    # Red: -100% to 100%
+                    red_raw = self._inBuf.getS16(18)
+                    self._d.key[mE][keyer].chroma.red = red_raw / 1000.0
+                    
+                    # Green: -100% to 100%
+                    green_raw = self._inBuf.getS16(20)
+                    self._d.key[mE][keyer].chroma.green = green_raw / 1000.0
+                    
+                    # Blue: -100% to 100%
+                    blue_raw = self._inBuf.getS16(22)
+                    self._d.key[mE][keyer].chroma.blue = blue_raw / 1000.0
+        
+        except Exception as e:
+            pass

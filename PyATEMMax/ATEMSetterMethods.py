@@ -244,17 +244,28 @@ class ATEMSetterMethods():
             mE: see ATEMMixEffects
             nextTransition: see ATEMTransitionStyles
         """
-
+        print(f"🔍 setTransitionNextTransition called with mE={mE}, nextTransition={nextTransition}")
+        
         mE_val = self.atem.mixEffects[mE].value
-        nextTransition_val = self.atem.transitionStyles[nextTransition].value
+        nextTransition_val = nextTransition
+        
+        print(f"🔍 mE_val={mE_val}, nextTransition_val={nextTransition_val}")
 
         indexMatch:bool = self.switcher._outBuf.getU8(1) == mE_val
+        print(f"🔍 indexMatch={indexMatch}")
 
         self.switcher._prepareCommandPacket("CTTp", 4, indexMatch)
         self.switcher._outBuf.setU8Flag(0, 1)     # Bit 0: Transition Style ON
         self.switcher._outBuf.setU8(1, mE_val)
         self.switcher._outBuf.setU8(3, nextTransition_val)
+        
+        print(f"🔍 Command packet prepared: CTTp, length=4")
+        print(f"🔍 Byte 0 (flag): set to 1")
+        print(f"🔍 Byte 1 (mE): {mE_val}")
+        print(f"🔍 Byte 3 (nextTransition): {nextTransition_val}")
+        
         self.switcher._finishCommandPacket()
+        print(f"🔍 Command packet sent")
 
 
     def setTransitionPreviewEnabled(self, mE: Union[ATEMConstant, str, int], enabled: bool) -> None:
@@ -505,21 +516,13 @@ class ATEMSetterMethods():
 
 
     def setTransitionWipeReverse(self, mE: Union[ATEMConstant, str, int], reverse: bool) -> None:
-        """Set Transition Wipe Reverse
-
-        Args:
-            mE: see ATEMMixEffects
-            reverse (bool): On/Off
-        """
-
         mE_val = self.atem.mixEffects[mE].value
-
         indexMatch:bool = self.switcher._outBuf.getU8(2) == mE_val
-
+        
         self.switcher._prepareCommandPacket("CTWp", 20, indexMatch)
-        self.switcher._outBuf.setU8Flag(0, 8)
+        self.switcher._outBuf.setU8Flag(0, 0)  # ✅ Changed from (0, 8)
         self.switcher._outBuf.setU8(2, mE_val)
-        self.switcher._outBuf.setU8(18, reverse)
+        self.switcher._outBuf.setU8(18, int(reverse))  # ✅ Already fixed
         self.switcher._finishCommandPacket()
 
 
@@ -536,9 +539,9 @@ class ATEMSetterMethods():
         indexMatch:bool = self.switcher._outBuf.getU8(2) == mE_val
 
         self.switcher._prepareCommandPacket("CTWp", 20, indexMatch)
-        self.switcher._outBuf.setU8Flag(0, 9)
+        self.switcher._outBuf.setU8Flag(0, 1)  # ✅ Changed from (0, 9) to (0, 1)
         self.switcher._outBuf.setU8(2, mE_val)
-        self.switcher._outBuf.setU8(19, flipFlop)
+        self.switcher._outBuf.setU8(19, int(flipFlop))  # ✅ Added int() conversion
         self.switcher._finishCommandPacket()
 
 
@@ -729,7 +732,7 @@ class ATEMSetterMethods():
         indexMatch:bool = self.switcher._outBuf.getU8(2) == mE_val
 
         self.switcher._prepareCommandPacket("CTDv", 20, indexMatch)
-        self.switcher._outBuf.setU8Flag(0, 10)
+        self.switcher._outBuf.setU8Flag(0, 2)
         self.switcher._outBuf.setU8(2, mE_val)
         self.switcher._outBuf.setU8(17, reverse)
         self.switcher._finishCommandPacket()
@@ -748,7 +751,7 @@ class ATEMSetterMethods():
         indexMatch:bool = self.switcher._outBuf.getU8(2) == mE_val
 
         self.switcher._prepareCommandPacket("CTDv", 20, indexMatch)
-        self.switcher._outBuf.setU8Flag(0, 11)
+        self.switcher._outBuf.setU8Flag(0, 3)
         self.switcher._outBuf.setU8(2, mE_val)
         self.switcher._outBuf.setU8(18, flipFlop)
         self.switcher._finishCommandPacket()
@@ -1071,7 +1074,7 @@ class ATEMSetterMethods():
         Args:
             mE: see ATEMMixEffects
             keyer: see ATEMKeyers
-            left (float): -9.0-9.0
+            left (float): -16.0-16.0
         """
 
         mE_val = self.atem.mixEffects[mE].value
@@ -1085,7 +1088,7 @@ class ATEMSetterMethods():
         self.switcher._outBuf.setU8(1, mE_val)
         self.switcher._outBuf.setU8(2, keyer_val)
 
-        value = int(mapValue(left, -9.0, 9.0, -16000, 16000))
+        value = int(mapValue(left, -16.0, 16.0, -16000, 16000))
         self.switcher._outBuf.setS16(8, value)
 
         self.switcher._finishCommandPacket()
@@ -1111,7 +1114,7 @@ class ATEMSetterMethods():
         self.switcher._outBuf.setU8(1, mE_val)
         self.switcher._outBuf.setU8(2, keyer_val)
 
-        value = int(mapValue(right, -9.0, 9.0, -16000, 16000))
+        value = int(mapValue(right, -16.0, 16.0, -16000, 16000))
         self.switcher._outBuf.setS16(10, value)
 
         self.switcher._finishCommandPacket()
@@ -2083,54 +2086,66 @@ class ATEMSetterMethods():
 
 
     def setKeyDVELeft(self, mE: Union[ATEMConstant, str, int], keyer: Union[ATEMConstant, str, int], left: float) -> None:
-        """Set Key DVE Left
-
+        """Set Key DVE Left - Following exact pattern of working Top/Bottom functions
+        
         Args:
             mE: see ATEMMixEffects
-            keyer: see ATEMKeyers
-            left (float): -9.0-9.0
+            keyer: see ATEMKeyers  
+            left (float): 0.0-52.0
         """
-
+        
         mE_val = self.atem.mixEffects[mE].value
         keyer_val = self.atem.keyers[keyer].value
-
-        indexMatch:bool = self.switcher._outBuf.getU8(4) == mE_val and \
-                    self.switcher._outBuf.getU8(5) == keyer_val
-
+        
+        indexMatch: bool = self.switcher._outBuf.getU8(4) == mE_val and \
+                        self.switcher._outBuf.getU8(5) == keyer_val
+        
         self.switcher._prepareCommandPacket("CKDV", 64, indexMatch)
+        
+        # Flag (1, 7) is working (doesn't turn off mask anymore)
         self.switcher._outBuf.setU8Flag(1, 7)
+        
         self.switcher._outBuf.setU8(4, mE_val)
         self.switcher._outBuf.setU8(5, keyer_val)
-
-        value = int(mapValue(left, -9.0, 9.0, -16000, 16000))
-        self.switcher._outBuf.setS16(56, value)
-
+        
+        # FOLLOW THE WORKING PATTERN:
+        # Your working Top uses position 52
+        # Your working Bottom uses position 54  
+        # So Left should use position 56 (next in sequence)
+        self.switcher._outBuf.setU16(56, int(left * 1000))
+        
         self.switcher._finishCommandPacket()
 
-
     def setKeyDVERight(self, mE: Union[ATEMConstant, str, int], keyer: Union[ATEMConstant, str, int], right: float) -> None:
-        """Set Key DVE Right
-
+        """Set Key DVE Right - Following exact pattern of working Top/Bottom functions
+        
         Args:
             mE: see ATEMMixEffects
             keyer: see ATEMKeyers
-            right (float): -9.0-9.0
+            right (float): 0.0-52.0
         """
-
+        
         mE_val = self.atem.mixEffects[mE].value
         keyer_val = self.atem.keyers[keyer].value
-
-        indexMatch:bool = self.switcher._outBuf.getU8(4) == mE_val and \
-                    self.switcher._outBuf.getU8(5) == keyer_val
-
+        
+        indexMatch: bool = self.switcher._outBuf.getU8(4) == mE_val and \
+                        self.switcher._outBuf.getU8(5) == keyer_val
+        
         self.switcher._prepareCommandPacket("CKDV", 64, indexMatch)
+        
+        # Try flag (0, 0) - need to find unused flag
         self.switcher._outBuf.setU8Flag(0, 0)
+        
         self.switcher._outBuf.setU8(4, mE_val)
         self.switcher._outBuf.setU8(5, keyer_val)
-
-        value = int(mapValue(right, -9.0, 9.0, -16000, 16000))
-        self.switcher._outBuf.setS16(58, value)
-
+        
+        # FOLLOW THE WORKING PATTERN:
+        # Your working Top uses position 52
+        # Your working Bottom uses position 54
+        # Left should use position 56
+        # So Right should use position 58 (next in sequence)
+        self.switcher._outBuf.setU16(58, int(right * 1000))
+        
         self.switcher._finishCommandPacket()
 
 
@@ -2203,26 +2218,58 @@ class ATEMSetterMethods():
         self.switcher._finishCommandPacket()
 
 
-    def setRunFlyingKeyRuntoInfiniteindex(self, mE: Union[ATEMConstant, str, int], keyer: Union[ATEMConstant, str, int], runtoInfiniteindex: int) -> None:
+    def setRunFlyingKeyRuntoInfiniteindex(self, mE: Union[ATEMConstant, str, int], keyer: Union[ATEMConstant, str, int], runtoInfiniteindex: Union[ATEMConstant, int]) -> None:
         """Set Run Flying Key Run-to-Infinite-index
-
+        
+        Sets the directional index for infinite key transitions. This must be set before
+        calling setRunFlyingKeyKeyFrame() with 'runToInfinite' parameter.
+        
         Args:
             mE: see ATEMMixEffects
-            keyer: see ATEMKeyerser 1-4
-            runtoInfiniteindex (int): index
+            keyer: see ATEMKeyers 1-4 
+            runtoInfiniteindex: Direction index (0-9) or ATEMInfiniteDirections constant
+                            Valid values: 0=center, 1=northWest, 2=north, 3=northEast,
+                            4=west, 6=east, 7=southWest, 8=south, 9=southEast
+        
+        Example:
+            # Set infinite direction to north-east, then run to infinite
+            switcher.setRunFlyingKeyRuntoInfiniteindex(0, 0, ATEMInfiniteDirections.northEast)
+            time.sleep(0.5)  # Allow command processing
+            switcher.setRunFlyingKeyKeyFrame(0, 0, "runToInfinite")
         """
-
         mE_val = self.atem.mixEffects[mE].value
         keyer_val = self.atem.keyers[keyer].value
-
-        indexMatch:bool = self.switcher._outBuf.getU8(1) == mE_val and \
-                    self.switcher._outBuf.getU8(2) == keyer_val
-
+        
+        # Handle both integer and ATEMConstant direction values
+        if hasattr(runtoInfiniteindex, 'value'):
+            direction_val = runtoInfiniteindex.value
+        else:
+            direction_val = int(runtoInfiniteindex)
+        
+        # Validate direction range (direction 5 is unused in ATEM grid)
+        valid_directions = [0, 1, 2, 3, 4, 6, 7, 8, 9]
+        if direction_val not in valid_directions:
+            raise ValueError(f"Invalid infinite direction: {direction_val}. Valid directions: {valid_directions}")
+        
+        indexMatch: bool = self.switcher._outBuf.getU8(1) == mE_val and \
+                        self.switcher._outBuf.getU8(2) == keyer_val
+        
         self.switcher._prepareCommandPacket("RFlK", 8, indexMatch)
-        self.switcher._outBuf.setU8Flag(0, 1)
-        self.switcher._outBuf.setU8(1, mE_val)
-        self.switcher._outBuf.setU8(2, keyer_val)
-        self.switcher._outBuf.setU8(5, runtoInfiniteindex)
+        
+        # Clear buffer to ensure clean state
+        for i in range(8):
+            self.switcher._outBuf.setU8(i, 0)
+        
+        # Packet structure determined through protocol analysis of ATEM Software communication
+        self.switcher._outBuf.setU8(0, 0x02)                    # Command flags (bit 1 set)
+        self.switcher._outBuf.setU8(1, mE_val)                  # Mix Effect index
+        self.switcher._outBuf.setU8(2, keyer_val)               # Keyer index  
+        self.switcher._outBuf.setU8(3, 0x6d)                    # Protocol validation byte (109)
+        self.switcher._outBuf.setU8(4, 0x04)                    # Protocol validation byte (4)
+        self.switcher._outBuf.setU8(5, direction_val)           # Infinite direction index
+        self.switcher._outBuf.setU8(6, 0x00)                    # Reserved
+        self.switcher._outBuf.setU8(7, 0x00)                    # Reserved
+        
         self.switcher._finishCommandPacket()
 
 
@@ -2437,7 +2484,7 @@ class ATEMSetterMethods():
 
         Args:
             keyer: see ATEMKeyers
-            left (float): -9.0-9.0
+            left (float): -16.0-16.0
         """
 
         keyer_val = self.atem.keyers[keyer].value
@@ -2448,7 +2495,7 @@ class ATEMSetterMethods():
         self.switcher._outBuf.setU8Flag(0, 3)
         self.switcher._outBuf.setU8(1, keyer_val)
 
-        value = int(mapValue(left, -9.0, 9.0, -16000, 16000))
+        value = int(mapValue(left, -16.0, 16.0, -16000, 16000))
         self.switcher._outBuf.setS16(8, value)
 
         self.switcher._finishCommandPacket()
@@ -2459,7 +2506,7 @@ class ATEMSetterMethods():
 
         Args:
             keyer: see ATEMKeyers
-            right (float): -9.0-9.0
+            right (float): -16.0-16.0
         """
 
         keyer_val = self.atem.keyers[keyer].value
@@ -2470,7 +2517,7 @@ class ATEMSetterMethods():
         self.switcher._outBuf.setU8Flag(0, 4)
         self.switcher._outBuf.setU8(1, keyer_val)
 
-        value = int(mapValue(right, -9.0, 9.0, -16000, 16000))
+        value = int(mapValue(right, -16.0, 16.0, -16000, 16000))
         self.switcher._outBuf.setS16(10, value)
 
         self.switcher._finishCommandPacket()
@@ -2510,6 +2557,31 @@ class ATEMSetterMethods():
         self.switcher._outBuf.setU8Flag(0, 0)
         self.switcher._outBuf.setU8(1, mE_val)
         self.switcher._outBuf.setU8(2, rate)
+        self.switcher._finishCommandPacket()
+
+    
+    # Replace your setFadeToBlackDisabled method with this final version:
+
+    def setFadeToBlackDisabled(self, mE: Union[ATEMConstant, str, int], disabled: bool) -> None:
+        mE_val = self.atem.mixEffects[mE].value
+        
+        print(f"Setting FTB disabled: ME{mE_val} = {disabled}")
+        
+        if disabled:
+            # DISABLE packet
+            indexMatch: bool = self.switcher._outBuf.getU8(1) == mE_val
+            self.switcher._prepareCommandPacket("FEna", 4, indexMatch)
+            self.switcher._outBuf.setU8Flag(0, 0)
+            self.switcher._outBuf.setU8(1, mE_val)
+            self.switcher._outBuf.setU8(2, 0)
+            print(f"Sent disable packet: [00 {mE_val:02x} 00]")
+        else:
+            # ENABLE packet
+            self.switcher._prepareCommandPacket("FEna", 4, False)
+            self.switcher._outBuf.setU8(0, 0)
+            self.switcher._outBuf.setU8(1, 1)
+            print(f"Sent enable packet: [00 01]")
+            
         self.switcher._finishCommandPacket()
 
 
@@ -3388,6 +3460,21 @@ class ATEMSetterMethods():
         self.switcher._finishCommandPacket()
 
 
+    def clearMediaPoolStill(self, slot: int) -> None:
+        """Clear a still from the Media Pool
+
+        Args:
+            slot (int): 0-based media pool still slot index
+        """
+
+        self.switcher._prepareCommandPacket("CSTL", 4)
+        self.switcher._outBuf.setU8(0, slot)
+        self.switcher._outBuf.setU8(1, 0x00)
+        self.switcher._outBuf.setU8(2, 0x00)
+        self.switcher._outBuf.setU8(3, 0x00)
+        self.switcher._finishCommandPacket()
+
+
     def setMediaPoolStorageClip1MaxLength(self, clip1MaxLength: int) -> None:
         """Set Media Pool Storage Clip 1 Max Length
 
@@ -4088,4 +4175,574 @@ class ATEMSetterMethods():
         self.switcher._prepareCommandPacket("RAMP", 8)
         self.switcher._outBuf.setU8Flag(0, 2)
         self.switcher._outBuf.setU8(4, master)
+        self.switcher._finishCommandPacket()
+
+    def setKeyChromaSample(self, mE, keyer, sample):
+        """Enable/disable chroma sample cursor"""
+        mE_val = self.atem.mixEffects[mE].value
+        keyer_val = self.atem.keyers[keyer].value
+        
+        self.switcher._prepareCommandPacket("CACC", 20)
+        
+        # Mask byte - bit 0 for cursor enable
+        mask = 0x01  
+        
+        self.switcher._outBuf.setU8(0, mask)
+        self.switcher._outBuf.setU8(1, mE_val)      # M/E index
+        self.switcher._outBuf.setU8(2, keyer_val)   # Keyer index  
+        self.switcher._outBuf.setU8(3, 0x01 if sample else 0x00)  # Enable cursor
+        
+        # Rest stays at 0
+        self.switcher._finishCommandPacket()
+
+    def setKeyChromaSamplePosition(self, mE, keyer, x, y):
+        """Set chroma sample cursor position
+        x: 0.0-1.0 (0=left, 1=right)
+        y: 0.0-1.0 (0=bottom, 1=top)
+        """
+        mE_val = self.atem.mixEffects[mE].value
+        keyer_val = self.atem.keyers[keyer].value
+        
+        # Convert 0.0-1.0 to ATEM coordinates using correct ranges
+        # X: -16000 to +16000 (symmetric)
+        x_min = -16000
+        x_max = 16000
+        x_val = int(x_min + x * (x_max - x_min))
+        
+        # Y: -9000 to +9000 (symmetric)
+        # 0.0 maps to -9000 (bottom), 1.0 maps to +9000 (top)
+        y_min = -9000
+        y_max = 9000
+        y_val = int(y_min + y * (y_max - y_min))
+        
+        self.switcher._prepareCommandPacket("CACC", 20)
+        
+        # Mask byte - bits 2 and 3 for X and Y
+        mask = 0x0C  # 0b00001100
+        
+        self.switcher._outBuf.setU8(0, mask)
+        self.switcher._outBuf.setU8(1, mE_val)      # M/E index
+        self.switcher._outBuf.setU8(2, keyer_val)   # Keyer index
+        self.switcher._outBuf.setU8(3, 0x00)        # cursor (not changing)
+        self.switcher._outBuf.setU8(4, 0x00)        # preview (not changing)
+        self.switcher._outBuf.setU8(5, 0x00)        # padding
+        self.switcher._outBuf.setS16(6, x_val)      # Cursor X
+        self.switcher._outBuf.setS16(8, y_val)      # Cursor Y
+        
+        self.switcher._finishCommandPacket()
+
+    def setKeyChromaSampleSize(self, mE, keyer, size):
+        """Set chroma sample cursor size
+        size: 0.0-1.0 normalized size
+        """
+        mE_val = self.atem.mixEffects[mE].value
+        keyer_val = self.atem.keyers[keyer].value
+        
+        # Convert 0.0-1.0 to ATEM range [620-9925]
+        size_min = 620
+        size_max = 9925
+        size_val = int(size_min + (size * (size_max - size_min)))
+        
+        self.switcher._prepareCommandPacket("CACC", 20)
+        
+        # Mask byte - bit 4 for size
+        mask = 0x10  # 0b00010000
+        
+        self.switcher._outBuf.setU8(0, mask)
+        self.switcher._outBuf.setU8(1, mE_val)      # M/E index
+        self.switcher._outBuf.setU8(2, keyer_val)   # Keyer index
+        self.switcher._outBuf.setU8(3, 0x00)        # cursor (not changing)
+        self.switcher._outBuf.setU8(4, 0x00)        # preview (not changing)
+        self.switcher._outBuf.setU8(5, 0x00)        # padding
+        self.switcher._outBuf.setS16(6, 0)          # X (not changing)
+        self.switcher._outBuf.setS16(8, 0)          # Y (not changing)
+        self.switcher._outBuf.setU16(10, size_val)  # Size
+        
+        self.switcher._finishCommandPacket()
+
+    def setKeyChromaSamplePreview(self, mE, keyer, preview):
+        """Enable/disable chroma sample preview"""
+        mE_val = self.atem.mixEffects[mE].value
+        keyer_val = self.atem.keyers[keyer].value
+        
+        self.switcher._prepareCommandPacket("CACC", 20)
+        
+        # Mask byte - bit 1 for preview
+        mask = 0x02  # 0b00000010
+        
+        self.switcher._outBuf.setU8(0, mask)
+        self.switcher._outBuf.setU8(1, mE_val)      # M/E index
+        self.switcher._outBuf.setU8(2, keyer_val)   # Keyer index
+        self.switcher._outBuf.setU8(3, 0x00)        # cursor (not changing)
+        self.switcher._outBuf.setU8(4, 0x01 if preview else 0x00)  # Enable preview
+        
+        self.switcher._finishCommandPacket()
+
+    def setKeyChromaForeground(self, mE: Union[ATEMConstant, str, int], 
+                            keyer: Union[ATEMConstant, str, int], 
+                            foreground: float) -> None:
+        """Set Key Chroma Foreground"""
+        
+        mE_val = self.atem.mixEffects[mE].value
+        keyer_val = self.atem.keyers[keyer].value
+        foreground_val = int(foreground * 1000)
+        
+        # Get current chroma values for other parameters
+        try:
+            chroma = self.key[mE_val][keyer_val].chroma
+            background_val = int(chroma.background * 1000)
+            keyEdge_val = int(chroma.keyEdge * 1000)
+            spill_val = int(chroma.spill * 1000)
+            flare_val = int(chroma.flareSuppression * 1000)
+        except Exception:
+            background_val = 804
+            keyEdge_val = 747
+            spill_val = 835
+            flare_val = 348
+        
+        self.switcher._prepareCommandPacket("CACK", 28)
+        
+        self.switcher._outBuf.setU16(0, 1 << 0)           # Mask: foreground only
+        self.switcher._outBuf.setU8(2, mE_val)            # M/E index
+        self.switcher._outBuf.setU8(3, keyer_val)         # Keyer index
+        self.switcher._outBuf.setU16(4, foreground_val)   # Foreground
+        self.switcher._outBuf.setU16(6, background_val)   # Background
+        self.switcher._outBuf.setU16(8, keyEdge_val)      # Key edge
+        self.switcher._outBuf.setU16(10, spill_val)       # Spill
+        self.switcher._outBuf.setU16(12, flare_val)       # Flare
+        self.switcher._outBuf.setU16(14, 0)               # Brightness
+        self.switcher._outBuf.setU16(16, 0)               # Contrast
+        self.switcher._outBuf.setU16(18, 1000)            # Saturation
+        self.switcher._outBuf.setU16(20, 0)               # Red
+        self.switcher._outBuf.setU16(22, 0)               # Green
+        self.switcher._outBuf.setU16(24, 0)               # Blue
+        self.switcher._outBuf.setU16(26, 0)               # Padding
+        
+        self.switcher._finishCommandPacket()
+
+    def setKeyChromaBackground(self, mE: Union[ATEMConstant, str, int], 
+                            keyer: Union[ATEMConstant, str, int], 
+                            background: float) -> None:
+        """Set Key Chroma Background"""
+        
+        mE_val = self.atem.mixEffects[mE].value
+        keyer_val = self.atem.keyers[keyer].value
+        background_val = int(background * 1000)
+        
+        # Get current chroma values for other parameters
+        try:
+            chroma = self.key[mE_val][keyer_val].chroma
+            foreground_val = int(chroma.foreground * 1000)
+            keyEdge_val = int(chroma.keyEdge * 1000)
+            spill_val = int(chroma.spill * 1000)
+            flare_val = int(chroma.flareSuppression * 1000)
+        except Exception:
+            foreground_val = 500
+            keyEdge_val = 747
+            spill_val = 835
+            flare_val = 348
+        
+        self.switcher._prepareCommandPacket("CACK", 28)
+        
+        self.switcher._outBuf.setU16(0, 1 << 1)           # Mask: background only
+        self.switcher._outBuf.setU8(2, mE_val)            # M/E index
+        self.switcher._outBuf.setU8(3, keyer_val)         # Keyer index
+        self.switcher._outBuf.setU16(4, foreground_val)   # Foreground
+        self.switcher._outBuf.setU16(6, background_val)   # Background
+        self.switcher._outBuf.setU16(8, keyEdge_val)      # Key edge
+        self.switcher._outBuf.setU16(10, spill_val)       # Spill
+        self.switcher._outBuf.setU16(12, flare_val)       # Flare
+        self.switcher._outBuf.setU16(14, 0)               # Brightness
+        self.switcher._outBuf.setU16(16, 0)               # Contrast
+        self.switcher._outBuf.setU16(18, 1000)            # Saturation
+        self.switcher._outBuf.setU16(20, 0)               # Red
+        self.switcher._outBuf.setU16(22, 0)               # Green
+        self.switcher._outBuf.setU16(24, 0)               # Blue
+        self.switcher._outBuf.setU16(26, 0)               # Padding
+        
+        self.switcher._finishCommandPacket()
+
+    def setKeyChromaKeyEdge(self, mE: Union[ATEMConstant, str, int], 
+                        keyer: Union[ATEMConstant, str, int], 
+                        keyEdge: float) -> None:
+        """Set Key Chroma Key Edge"""
+        
+        mE_val = self.atem.mixEffects[mE].value
+        keyer_val = self.atem.keyers[keyer].value
+        keyEdge_val = int(keyEdge * 1000)
+        
+        # Get current chroma values for other parameters
+        try:
+            chroma = self.key[mE_val][keyer_val].chroma
+            foreground_val = int(chroma.foreground * 1000)
+            background_val = int(chroma.background * 1000)
+            spill_val = int(chroma.spill * 1000)
+            flare_val = int(chroma.flareSuppression * 1000)
+        except Exception:
+            foreground_val = 500
+            background_val = 804
+            spill_val = 835
+            flare_val = 348
+        
+        self.switcher._prepareCommandPacket("CACK", 28)
+        
+        self.switcher._outBuf.setU16(0, 1 << 2)           # Mask: key edge only
+        self.switcher._outBuf.setU8(2, mE_val)            # M/E index
+        self.switcher._outBuf.setU8(3, keyer_val)         # Keyer index
+        self.switcher._outBuf.setU16(4, foreground_val)   # Foreground
+        self.switcher._outBuf.setU16(6, background_val)   # Background
+        self.switcher._outBuf.setU16(8, keyEdge_val)      # Key edge
+        self.switcher._outBuf.setU16(10, spill_val)       # Spill
+        self.switcher._outBuf.setU16(12, flare_val)       # Flare
+        self.switcher._outBuf.setU16(14, 0)               # Brightness
+        self.switcher._outBuf.setU16(16, 0)               # Contrast
+        self.switcher._outBuf.setU16(18, 1000)            # Saturation
+        self.switcher._outBuf.setU16(20, 0)               # Red
+        self.switcher._outBuf.setU16(22, 0)               # Green
+        self.switcher._outBuf.setU16(24, 0)               # Blue
+        self.switcher._outBuf.setU16(26, 0)               # Padding
+        
+        self.switcher._finishCommandPacket()
+
+    def setKeyChromaSpill(self, mE: Union[ATEMConstant, str, int], 
+                        keyer: Union[ATEMConstant, str, int], 
+                        spill: float) -> None:
+        """Set Key Chroma Spill Suppression"""
+        
+        mE_val = self.atem.mixEffects[mE].value
+        keyer_val = self.atem.keyers[keyer].value
+        spill_val = int(spill * 1000)
+        
+        # Get current chroma values for other parameters
+        try:
+            chroma = self.key[mE_val][keyer_val].chroma
+            foreground_val = int(chroma.foreground * 1000)
+            background_val = int(chroma.background * 1000)
+            keyEdge_val = int(chroma.keyEdge * 1000)
+            flare_val = int(chroma.flareSuppression * 1000)
+        except Exception:
+            foreground_val = 500
+            background_val = 804
+            keyEdge_val = 747
+            flare_val = 348
+        
+        self.switcher._prepareCommandPacket("CACK", 28)
+        
+        self.switcher._outBuf.setU16(0, 1 << 3)           # Mask: spill only
+        self.switcher._outBuf.setU8(2, mE_val)            # M/E index
+        self.switcher._outBuf.setU8(3, keyer_val)         # Keyer index
+        self.switcher._outBuf.setU16(4, foreground_val)   # Foreground
+        self.switcher._outBuf.setU16(6, background_val)   # Background
+        self.switcher._outBuf.setU16(8, keyEdge_val)      # Key edge
+        self.switcher._outBuf.setU16(10, spill_val)       # Spill
+        self.switcher._outBuf.setU16(12, flare_val)       # Flare
+        self.switcher._outBuf.setU16(14, 0)               # Brightness
+        self.switcher._outBuf.setU16(16, 0)               # Contrast
+        self.switcher._outBuf.setU16(18, 1000)            # Saturation
+        self.switcher._outBuf.setU16(20, 0)               # Red
+        self.switcher._outBuf.setU16(22, 0)               # Green
+        self.switcher._outBuf.setU16(24, 0)               # Blue
+        self.switcher._outBuf.setU16(26, 0)               # Padding
+        
+        self.switcher._finishCommandPacket()
+
+    def setKeyChromaFlareSuppression(self, mE: Union[ATEMConstant, str, int], 
+                                    keyer: Union[ATEMConstant, str, int], 
+                                    flareSuppression: float) -> None:
+        """Set Key Chroma Flare Suppression"""
+        
+        mE_val = self.atem.mixEffects[mE].value
+        keyer_val = self.atem.keyers[keyer].value
+        flare_val = int(flareSuppression * 1000)
+        
+        # Get current chroma values for other parameters
+        try:
+            chroma = self.key[mE_val][keyer_val].chroma
+            foreground_val = int(chroma.foreground * 1000)
+            background_val = int(chroma.background * 1000)
+            keyEdge_val = int(chroma.keyEdge * 1000)
+            spill_val = int(chroma.spill * 1000)
+        except Exception:
+            foreground_val = 500
+            background_val = 804
+            keyEdge_val = 747
+            spill_val = 835
+        
+        self.switcher._prepareCommandPacket("CACK", 28)
+        
+        self.switcher._outBuf.setU16(0, 1 << 4)           # Mask: flare only
+        self.switcher._outBuf.setU8(2, mE_val)            # M/E index
+        self.switcher._outBuf.setU8(3, keyer_val)         # Keyer index
+        self.switcher._outBuf.setU16(4, foreground_val)   # Foreground
+        self.switcher._outBuf.setU16(6, background_val)   # Background
+        self.switcher._outBuf.setU16(8, keyEdge_val)      # Key edge
+        self.switcher._outBuf.setU16(10, spill_val)       # Spill
+        self.switcher._outBuf.setU16(12, flare_val)       # Flare
+        self.switcher._outBuf.setU16(14, 0)               # Brightness
+        self.switcher._outBuf.setU16(16, 0)               # Contrast
+        self.switcher._outBuf.setU16(18, 1000)            # Saturation
+        self.switcher._outBuf.setU16(20, 0)               # Red
+        self.switcher._outBuf.setU16(22, 0)               # Green
+        self.switcher._outBuf.setU16(24, 0)               # Blue
+        self.switcher._outBuf.setU16(26, 0)               # Padding
+        
+        self.switcher._finishCommandPacket()
+
+    def setKeyChromaBrightness(self, mE: Union[ATEMConstant, str, int], 
+                            keyer: Union[ATEMConstant, str, int], 
+                            brightness: float) -> None:
+        """Set Key Chroma Brightness [-1.0 to 1.0]"""
+        
+        mE_val = self.atem.mixEffects[mE].value
+        keyer_val = self.atem.keyers[keyer].value
+        brightness_val = int(brightness * 1000)  # -1000 to 1000
+        
+        # Get current chroma values for other parameters
+        try:
+            chroma = self.key[mE_val][keyer_val].chroma
+            foreground_val = int(chroma.foreground * 1000)
+            background_val = int(chroma.background * 1000)
+            keyEdge_val = int(chroma.keyEdge * 1000)
+            spill_val = int(chroma.spill * 1000)
+            flare_val = int(chroma.flareSuppression * 1000)
+        except Exception:
+            foreground_val = 500
+            background_val = 804
+            keyEdge_val = 747
+            spill_val = 835
+            flare_val = 348
+        
+        self.switcher._prepareCommandPacket("CACK", 28)
+        
+        self.switcher._outBuf.setU16(0, 1 << 5)           # Mask: brightness only
+        self.switcher._outBuf.setU8(2, mE_val)            # M/E index
+        self.switcher._outBuf.setU8(3, keyer_val)         # Keyer index
+        self.switcher._outBuf.setU16(4, foreground_val)   # Foreground
+        self.switcher._outBuf.setU16(6, background_val)   # Background
+        self.switcher._outBuf.setU16(8, keyEdge_val)      # Key edge
+        self.switcher._outBuf.setU16(10, spill_val)       # Spill
+        self.switcher._outBuf.setU16(12, flare_val)       # Flare
+        self.switcher._outBuf.setS16(14, brightness_val)  # Brightness - SIGNED
+        self.switcher._outBuf.setU16(16, 0)               # Contrast
+        self.switcher._outBuf.setU16(18, 1000)            # Saturation
+        self.switcher._outBuf.setU16(20, 0)               # Red
+        self.switcher._outBuf.setU16(22, 0)               # Green
+        self.switcher._outBuf.setU16(24, 0)               # Blue
+        self.switcher._outBuf.setU16(26, 0)               # Padding
+        
+        self.switcher._finishCommandPacket()
+
+    def setKeyChromaContrast(self, mE: Union[ATEMConstant, str, int], 
+                            keyer: Union[ATEMConstant, str, int], 
+                            contrast: float) -> None:
+        """Set Key Chroma Contrast [-1.0 to 1.0]"""
+        
+        mE_val = self.atem.mixEffects[mE].value
+        keyer_val = self.atem.keyers[keyer].value
+        contrast_val = int(contrast * 1000)  # -1000 to 1000
+        
+        try:
+            chroma = self.key[mE_val][keyer_val].chroma
+            foreground_val = int(chroma.foreground * 1000)
+            background_val = int(chroma.background * 1000)
+            keyEdge_val = int(chroma.keyEdge * 1000)
+            spill_val = int(chroma.spill * 1000)
+            flare_val = int(chroma.flareSuppression * 1000)
+        except Exception:
+            foreground_val = 500
+            background_val = 804
+            keyEdge_val = 747
+            spill_val = 835
+            flare_val = 348
+        
+        self.switcher._prepareCommandPacket("CACK", 28)
+        
+        self.switcher._outBuf.setU16(0, 1 << 6)           # Mask: contrast only
+        self.switcher._outBuf.setU8(2, mE_val)
+        self.switcher._outBuf.setU8(3, keyer_val)
+        self.switcher._outBuf.setU16(4, foreground_val)
+        self.switcher._outBuf.setU16(6, background_val)
+        self.switcher._outBuf.setU16(8, keyEdge_val)
+        self.switcher._outBuf.setU16(10, spill_val)
+        self.switcher._outBuf.setU16(12, flare_val)
+        self.switcher._outBuf.setU16(14, 0)               # Brightness
+        self.switcher._outBuf.setS16(16, contrast_val)    # Contrast - SIGNED
+        self.switcher._outBuf.setU16(18, 1000)            # Saturation
+        self.switcher._outBuf.setU16(20, 0)               # Red
+        self.switcher._outBuf.setU16(22, 0)               # Green
+        self.switcher._outBuf.setU16(24, 0)               # Blue
+        self.switcher._outBuf.setU16(26, 0)               # Padding
+        
+        self.switcher._finishCommandPacket()
+
+    def setKeyChromaSaturation(self, mE: Union[ATEMConstant, str, int], 
+                            keyer: Union[ATEMConstant, str, int], 
+                            saturation: float) -> None:
+        """Set Key Chroma Saturation [0.0 to 2.0]"""
+        
+        mE_val = self.atem.mixEffects[mE].value
+        keyer_val = self.atem.keyers[keyer].value
+        saturation_val = int(saturation * 1000)  # 0 to 2000
+        
+        try:
+            chroma = self.key[mE_val][keyer_val].chroma
+            foreground_val = int(chroma.foreground * 1000)
+            background_val = int(chroma.background * 1000)
+            keyEdge_val = int(chroma.keyEdge * 1000)
+            spill_val = int(chroma.spill * 1000)
+            flare_val = int(chroma.flareSuppression * 1000)
+        except Exception:
+            foreground_val = 500
+            background_val = 804
+            keyEdge_val = 747
+            spill_val = 835
+            flare_val = 348
+        
+        self.switcher._prepareCommandPacket("CACK", 28)
+        
+        self.switcher._outBuf.setU16(0, 1 << 7)           # Mask: saturation only
+        self.switcher._outBuf.setU8(2, mE_val)
+        self.switcher._outBuf.setU8(3, keyer_val)
+        self.switcher._outBuf.setU16(4, foreground_val)
+        self.switcher._outBuf.setU16(6, background_val)
+        self.switcher._outBuf.setU16(8, keyEdge_val)
+        self.switcher._outBuf.setU16(10, spill_val)
+        self.switcher._outBuf.setU16(12, flare_val)
+        self.switcher._outBuf.setU16(14, 0)               # Brightness
+        self.switcher._outBuf.setU16(16, 0)               # Contrast
+        self.switcher._outBuf.setU16(18, saturation_val)  # Saturation
+        self.switcher._outBuf.setU16(20, 0)               # Red
+        self.switcher._outBuf.setU16(22, 0)               # Green
+        self.switcher._outBuf.setU16(24, 0)               # Blue
+        self.switcher._outBuf.setU16(26, 0)               # Padding
+        
+        self.switcher._finishCommandPacket()
+
+    def setKeyChromaRed(self, mE: Union[ATEMConstant, str, int], 
+                    keyer: Union[ATEMConstant, str, int], 
+                    red: float) -> None:
+        """Set Key Chroma Red [-1.0 to 1.0]"""
+        
+        mE_val = self.atem.mixEffects[mE].value
+        keyer_val = self.atem.keyers[keyer].value
+        red_val = int(red * 1000)  # -1000 to 1000
+        
+        try:
+            chroma = self.key[mE_val][keyer_val].chroma
+            foreground_val = int(chroma.foreground * 1000)
+            background_val = int(chroma.background * 1000)
+            keyEdge_val = int(chroma.keyEdge * 1000)
+            spill_val = int(chroma.spill * 1000)
+            flare_val = int(chroma.flareSuppression * 1000)
+        except Exception:
+            foreground_val = 500
+            background_val = 804
+            keyEdge_val = 747
+            spill_val = 835
+            flare_val = 348
+        
+        self.switcher._prepareCommandPacket("CACK", 28)
+        
+        self.switcher._outBuf.setU16(0, 1 << 8)           # Mask: red only
+        self.switcher._outBuf.setU8(2, mE_val)
+        self.switcher._outBuf.setU8(3, keyer_val)
+        self.switcher._outBuf.setU16(4, foreground_val)
+        self.switcher._outBuf.setU16(6, background_val)
+        self.switcher._outBuf.setU16(8, keyEdge_val)
+        self.switcher._outBuf.setU16(10, spill_val)
+        self.switcher._outBuf.setU16(12, flare_val)
+        self.switcher._outBuf.setU16(14, 0)               # Brightness
+        self.switcher._outBuf.setU16(16, 0)               # Contrast
+        self.switcher._outBuf.setU16(18, 1000)            # Saturation
+        self.switcher._outBuf.setS16(20, red_val)         # Red - SIGNED
+        self.switcher._outBuf.setU16(22, 0)               # Green
+        self.switcher._outBuf.setU16(24, 0)               # Blue
+        self.switcher._outBuf.setU16(26, 0)               # Padding
+        
+        self.switcher._finishCommandPacket()
+
+    def setKeyChromaGreen(self, mE: Union[ATEMConstant, str, int], 
+                        keyer: Union[ATEMConstant, str, int], 
+                        green: float) -> None:
+        """Set Key Chroma Green [-1.0 to 1.0]"""
+        
+        mE_val = self.atem.mixEffects[mE].value
+        keyer_val = self.atem.keyers[keyer].value
+        green_val = int(green * 1000)  # -1000 to 1000
+        
+        try:
+            chroma = self.key[mE_val][keyer_val].chroma
+            foreground_val = int(chroma.foreground * 1000)
+            background_val = int(chroma.background * 1000)
+            keyEdge_val = int(chroma.keyEdge * 1000)
+            spill_val = int(chroma.spill * 1000)
+            flare_val = int(chroma.flareSuppression * 1000)
+        except Exception:
+            foreground_val = 500
+            background_val = 804
+            keyEdge_val = 747
+            spill_val = 835
+            flare_val = 348
+        
+        self.switcher._prepareCommandPacket("CACK", 28)
+        
+        self.switcher._outBuf.setU16(0, 1 << 9)           # Mask: green only
+        self.switcher._outBuf.setU8(2, mE_val)
+        self.switcher._outBuf.setU8(3, keyer_val)
+        self.switcher._outBuf.setU16(4, foreground_val)
+        self.switcher._outBuf.setU16(6, background_val)
+        self.switcher._outBuf.setU16(8, keyEdge_val)
+        self.switcher._outBuf.setU16(10, spill_val)
+        self.switcher._outBuf.setU16(12, flare_val)
+        self.switcher._outBuf.setU16(14, 0)               # Brightness
+        self.switcher._outBuf.setU16(16, 0)               # Contrast
+        self.switcher._outBuf.setU16(18, 1000)            # Saturation
+        self.switcher._outBuf.setU16(20, 0)               # Red
+        self.switcher._outBuf.setS16(22, green_val)       # Green - SIGNED
+        self.switcher._outBuf.setU16(24, 0)               # Blue
+        self.switcher._outBuf.setU16(26, 0)               # Padding
+        
+        self.switcher._finishCommandPacket()
+
+    def setKeyChromaBlue(self, mE: Union[ATEMConstant, str, int], 
+                        keyer: Union[ATEMConstant, str, int], 
+                        blue: float) -> None:
+        """Set Key Chroma Blue [-1.0 to 1.0]"""
+        
+        mE_val = self.atem.mixEffects[mE].value
+        keyer_val = self.atem.keyers[keyer].value
+        blue_val = int(blue * 1000)  # -1000 to 1000
+        
+        try:
+            chroma = self.key[mE_val][keyer_val].chroma
+            foreground_val = int(chroma.foreground * 1000)
+            background_val = int(chroma.background * 1000)
+            keyEdge_val = int(chroma.keyEdge * 1000)
+            spill_val = int(chroma.spill * 1000)
+            flare_val = int(chroma.flareSuppression * 1000)
+        except Exception:
+            foreground_val = 500
+            background_val = 804
+            keyEdge_val = 747
+            spill_val = 835
+            flare_val = 348
+        
+        self.switcher._prepareCommandPacket("CACK", 28)
+        
+        self.switcher._outBuf.setU16(0, 1 << 10)          # Mask: blue only
+        self.switcher._outBuf.setU8(2, mE_val)
+        self.switcher._outBuf.setU8(3, keyer_val)
+        self.switcher._outBuf.setU16(4, foreground_val)
+        self.switcher._outBuf.setU16(6, background_val)
+        self.switcher._outBuf.setU16(8, keyEdge_val)
+        self.switcher._outBuf.setU16(10, spill_val)
+        self.switcher._outBuf.setU16(12, flare_val)
+        self.switcher._outBuf.setU16(14, 0)               # Brightness
+        self.switcher._outBuf.setU16(16, 0)               # Contrast
+        self.switcher._outBuf.setU16(18, 1000)            # Saturation
+        self.switcher._outBuf.setU16(20, 0)               # Red
+        self.switcher._outBuf.setU16(22, 0)               # Green
+        self.switcher._outBuf.setS16(24, blue_val)        # Blue - SIGNED
+        self.switcher._outBuf.setU16(26, 0)               # Padding
+        
         self.switcher._finishCommandPacket()
