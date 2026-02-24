@@ -29,7 +29,7 @@ class ATEMProtocol:
     UDPPort: int = 9910
 
     # Default timeout for full connection process
-    defaultConnectionTimeout: float = 1.0
+    defaultConnectionTimeout: float = 10.0
 
     # Default timeout for basic handshake
     defaultHandshakeTimeout: float = 0.1

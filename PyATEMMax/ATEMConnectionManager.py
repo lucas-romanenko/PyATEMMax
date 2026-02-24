@@ -359,6 +359,7 @@ class ATEMConnectionManager():
                     if not self.switcherAlive:
                         # We know the switcher is alive
                         self.log.debug("Basic UDP connection established, switcher is alive.")
+
                         self.switcherAlive = True
                         # This break forces the loop to exit, giving the user a chance to
                         #  disconnect() the connection without sending any ACKs (disturbing our switcher)
@@ -613,7 +614,9 @@ class ATEMConnectionManager():
 
         if waitForFullHandshake:
             # Step 2 - wait for full handshake
-            while not self.connected:
+            # Firmware 10.2+ no longer sends InCm or 12-byte termination packet
+            # so we use handshakeStarted as the connection signal instead
+            while not self.connected and not self.handshakeStarted:
                 if timeout and time.time() - startTime >= timeout:
                     self.log.debug(f"Timeout {waitstr}")
                     return False

@@ -59,18 +59,14 @@ class ATEMUDPSocket():
 
 
     def stop(self) -> Any:
-        """
-        Disconnect from the server.
-
-        From: https://www.arduino.cc/en/Reference/ClientStop
-        """
-
         if self.connected:
-            # No need to close an UDP socket in Python, and
-            #  it does close the file descriptor...
-            # self._socket.close()
+            try:
+                self._socket.close()
+            except:
+                pass
+            self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self._socket.setblocking(False)
             self.connected = False
-
         self.flushInputBuffer()
 
 
