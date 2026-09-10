@@ -152,7 +152,7 @@ class ATEMCommandHandlers():
     #  Command handler methods
     #
 
-    def _handle_InCm(self) -> None:
+    def _handleInCm(self) -> None:
         self._sw.setPayloadSent()
 
 
