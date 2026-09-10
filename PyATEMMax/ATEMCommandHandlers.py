@@ -471,7 +471,7 @@ class ATEMCommandHandlers():
         self._d.keyer[mE][keyer].fly.isAtKeyFrame.b = self._inBuf.getU8Flag(6, 1)
         self._d.keyer[mE][keyer].fly.isAtKeyFrame.full = self._inBuf.getU8Flag(6, 2)
         self._d.keyer[mE][keyer].fly.isAtKeyFrame.runToInfinite = self._inBuf.getU8Flag(6, 3)
-        self._d.keyer[mE][keyer].fly.runtoInfiniteindex = self._inBuf.getU8(5)  # Changed from 7 to 5
+        self._d.keyer[mE][keyer].fly.runtoInfiniteindex = self._inBuf.getU8(5)
 
 
     def _handleKKFP(self) -> None:
@@ -550,11 +550,6 @@ class ATEMCommandHandlers():
         self._d.fadeToBlack[mE].state.framesRemaining = self._inBuf.getU8(3)
 
 
-    def _handleTEST(self) -> None:
-        """Test method to see if new methods work"""
-        pass
-
-
     def _handleFEna(self) -> None:
         """Handle FEna (Fade Enable/Disable) state updates"""
         try:
@@ -570,7 +565,6 @@ class ATEMCommandHandlers():
             except:
                 byte2 = 0
             
-            # Parse based on your Wireshark analysis
             if byte0 == 0 and byte1 == 1:
                 # Enable packet (00 01)
                 self._d.fadeToBlack[mE].disabled = False

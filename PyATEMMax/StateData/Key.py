@@ -109,7 +109,7 @@ class Key():
             self.narrow: bool = False
             self.ySuppress: float = 0.0
             self.sample: bool = False
-            self.preview: bool = False  # Add this line
+            self.preview: bool = False
             self.samplePosition: Key.Chroma.Position = Key.Chroma.Position()
             self.sampleSize: float = 0.0
             self.sampledColor: dict = {
@@ -129,7 +129,7 @@ class Key():
             self.spill: float = 0.0
             self.flareSuppression: float = 0.0
 
-            # Add Color Adjustment fields if needed
+            # Color Adjustment fields
             self.brightness: float = 1.0
             self.contrast: float = 0.5
             self.saturation: float = 1.0

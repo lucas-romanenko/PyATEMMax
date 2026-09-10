@@ -811,8 +811,6 @@ class ATEMConnectionManager():
         self._outBuf.setUserOffsetCallback(lambda offset : self.atem.headerLen + self._cBBO + self.atem.cmdHeaderLen + offset)
 
 
-    # Add this method to ATEMConnectionManager class:
-
     def _prepareCACKCommandPacket(self, cmdBytes: int):
         """Special preparation for CACK commands with synchronized sequence numbers"""
         

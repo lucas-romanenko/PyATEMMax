@@ -244,28 +244,17 @@ class ATEMSetterMethods():
             mE: see ATEMMixEffects
             nextTransition: see ATEMTransitionStyles
         """
-        print(f"🔍 setTransitionNextTransition called with mE={mE}, nextTransition={nextTransition}")
-        
+
         mE_val = self.atem.mixEffects[mE].value
-        nextTransition_val = nextTransition
-        
-        print(f"🔍 mE_val={mE_val}, nextTransition_val={nextTransition_val}")
+        nextTransition_val = self.atem.transitionStyles[nextTransition].value
 
         indexMatch:bool = self.switcher._outBuf.getU8(1) == mE_val
-        print(f"🔍 indexMatch={indexMatch}")
 
         self.switcher._prepareCommandPacket("CTTp", 4, indexMatch)
         self.switcher._outBuf.setU8Flag(0, 1)     # Bit 0: Transition Style ON
         self.switcher._outBuf.setU8(1, mE_val)
         self.switcher._outBuf.setU8(3, nextTransition_val)
-        
-        print(f"🔍 Command packet prepared: CTTp, length=4")
-        print(f"🔍 Byte 0 (flag): set to 1")
-        print(f"🔍 Byte 1 (mE): {mE_val}")
-        print(f"🔍 Byte 3 (nextTransition): {nextTransition_val}")
-        
         self.switcher._finishCommandPacket()
-        print(f"🔍 Command packet sent")
 
 
     def setTransitionPreviewEnabled(self, mE: Union[ATEMConstant, str, int], enabled: bool) -> None:
@@ -520,9 +509,9 @@ class ATEMSetterMethods():
         indexMatch:bool = self.switcher._outBuf.getU8(2) == mE_val
         
         self.switcher._prepareCommandPacket("CTWp", 20, indexMatch)
-        self.switcher._outBuf.setU8Flag(0, 0)  # ✅ Changed from (0, 8)
+        self.switcher._outBuf.setU8Flag(0, 0)
         self.switcher._outBuf.setU8(2, mE_val)
-        self.switcher._outBuf.setU8(18, int(reverse))  # ✅ Already fixed
+        self.switcher._outBuf.setU8(18, int(reverse))
         self.switcher._finishCommandPacket()
 
 
@@ -539,9 +528,9 @@ class ATEMSetterMethods():
         indexMatch:bool = self.switcher._outBuf.getU8(2) == mE_val
 
         self.switcher._prepareCommandPacket("CTWp", 20, indexMatch)
-        self.switcher._outBuf.setU8Flag(0, 1)  # ✅ Changed from (0, 9) to (0, 1)
+        self.switcher._outBuf.setU8Flag(0, 1)
         self.switcher._outBuf.setU8(2, mE_val)
-        self.switcher._outBuf.setU8(19, int(flipFlop))  # ✅ Added int() conversion
+        self.switcher._outBuf.setU8(19, int(flipFlop))
         self.switcher._finishCommandPacket()
 
 
@@ -2086,7 +2075,7 @@ class ATEMSetterMethods():
 
 
     def setKeyDVELeft(self, mE: Union[ATEMConstant, str, int], keyer: Union[ATEMConstant, str, int], left: float) -> None:
-        """Set Key DVE Left - Following exact pattern of working Top/Bottom functions
+        """Set Key DVE Left
         
         Args:
             mE: see ATEMMixEffects
@@ -2102,22 +2091,17 @@ class ATEMSetterMethods():
         
         self.switcher._prepareCommandPacket("CKDV", 64, indexMatch)
         
-        # Flag (1, 7) is working (doesn't turn off mask anymore)
         self.switcher._outBuf.setU8Flag(1, 7)
         
         self.switcher._outBuf.setU8(4, mE_val)
         self.switcher._outBuf.setU8(5, keyer_val)
         
-        # FOLLOW THE WORKING PATTERN:
-        # Your working Top uses position 52
-        # Your working Bottom uses position 54  
-        # So Left should use position 56 (next in sequence)
         self.switcher._outBuf.setU16(56, int(left * 1000))
         
         self.switcher._finishCommandPacket()
 
     def setKeyDVERight(self, mE: Union[ATEMConstant, str, int], keyer: Union[ATEMConstant, str, int], right: float) -> None:
-        """Set Key DVE Right - Following exact pattern of working Top/Bottom functions
+        """Set Key DVE Right
         
         Args:
             mE: see ATEMMixEffects
@@ -2133,17 +2117,11 @@ class ATEMSetterMethods():
         
         self.switcher._prepareCommandPacket("CKDV", 64, indexMatch)
         
-        # Try flag (0, 0) - need to find unused flag
         self.switcher._outBuf.setU8Flag(0, 0)
         
         self.switcher._outBuf.setU8(4, mE_val)
         self.switcher._outBuf.setU8(5, keyer_val)
         
-        # FOLLOW THE WORKING PATTERN:
-        # Your working Top uses position 52
-        # Your working Bottom uses position 54
-        # Left should use position 56
-        # So Right should use position 58 (next in sequence)
         self.switcher._outBuf.setU16(58, int(right * 1000))
         
         self.switcher._finishCommandPacket()
@@ -2559,14 +2537,10 @@ class ATEMSetterMethods():
         self.switcher._outBuf.setU8(2, rate)
         self.switcher._finishCommandPacket()
 
-    
-    # Replace your setFadeToBlackDisabled method with this final version:
 
     def setFadeToBlackDisabled(self, mE: Union[ATEMConstant, str, int], disabled: bool) -> None:
         mE_val = self.atem.mixEffects[mE].value
-        
-        print(f"Setting FTB disabled: ME{mE_val} = {disabled}")
-        
+
         if disabled:
             # DISABLE packet
             indexMatch: bool = self.switcher._outBuf.getU8(1) == mE_val
@@ -2574,14 +2548,12 @@ class ATEMSetterMethods():
             self.switcher._outBuf.setU8Flag(0, 0)
             self.switcher._outBuf.setU8(1, mE_val)
             self.switcher._outBuf.setU8(2, 0)
-            print(f"Sent disable packet: [00 {mE_val:02x} 00]")
         else:
             # ENABLE packet
             self.switcher._prepareCommandPacket("FEna", 4, False)
             self.switcher._outBuf.setU8(0, 0)
             self.switcher._outBuf.setU8(1, 1)
-            print(f"Sent enable packet: [00 01]")
-            
+
         self.switcher._finishCommandPacket()
 
 
